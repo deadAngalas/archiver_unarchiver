@@ -82,12 +82,12 @@ void Huffman::SymbolRepetition()
   original.close();
   content[fileSize] = '\0';
 
-  Symbols = new char[N];
-  Frequency = new int[N];
+  char* tempSym = new char[N];
+  char* tempFreq = new char[N];
 
   for(int k = 0; k < N; k++)
   {
-    Frequency[k] = 0;
+    tempFreq[k] = 0;
   }
 
   for(int i = 0; i < fileSize; i++)
@@ -98,21 +98,29 @@ void Huffman::SymbolRepetition()
     // check there is or not this symbol in array
     for(int j = 0; j < uniqueCount && isStop == false; j++)
     {
-      if(Symbols[j] == currentChar)
+      if(tempSym[j] == currentChar)
       {
         charFound = true;
-        Frequency[j]++;
+        tempFreq[j]++;
         isStop = true;
       }
     }
     // if it is unique symbol -> add it in array
     if(!charFound)
     {
-      Symbols[uniqueCount] = currentChar;
-      Frequency[uniqueCount]++;
+      tempSym[uniqueCount] = currentChar;
+      tempFreq[uniqueCount]++;
       uniqueCount++;
     }
   }
+  Frequency = new int[uniqueCount];
+  Symbols = new char[uniqueCount];
+
+  copy(tempFreq + 0, tempFreq + uniqueCount, Frequency);
+  copy(tempSym + 0, tempSym + uniqueCount, Symbols);
+  copy(tempFreq + 0, tempFreq + uniqueCount, test);
+  delete[] tempFreq;
+  delete[] tempSym;
 }
 
 void Huffman::ArraysSort()
