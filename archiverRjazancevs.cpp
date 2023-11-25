@@ -32,17 +32,36 @@ void ProgEnd()
   cout << endl;
 }
 
+struct Node
+{
+  char data;
+  int freq = 0;
+  string code;
+  Node *left = NULL;
+  Node *right = NULL;
+};
+
+void PrintTree(Node *cur, int padding = 0)
+{
+  if(cur != NULL)
+  {
+    PrintTree(cur->right, padding+=5);
+    cout << setw(padding) << "[" << cur->freq << ","  << cur->data << "]" << endl;
+    PrintTree(cur->left, padding);
+  }
+}
+
 class Huffman
 {
-  char* Symbols;
-  int* Frequency;
+  Node* arr;
   int uniqueCount = 0;
 public:
   void SymbolRepetition();
-  void ArraysSort();
+  void ArraySort();
   int get_uniqueCount();
-  char* get_Symbols();
-  int* get_Frequency();
+  Node* get_arr();
+  void CreateTree();
+  void TravelTree(Node* root, string code);
 };
 
 int Huffman::get_uniqueCount()
@@ -50,14 +69,9 @@ int Huffman::get_uniqueCount()
   return uniqueCount;
 }
 
-char* Huffman::get_Symbols()
+Node* Huffman::get_arr()
 {
-  return Symbols;
-}
-
-int* Huffman::get_Frequency()
-{
- return Frequency;
+  return arr;
 }
 
 void Huffman::SymbolRepetition()
@@ -113,40 +127,101 @@ void Huffman::SymbolRepetition()
       uniqueCount++;
     }
   }
-  Frequency = new int[uniqueCount];
-  Symbols = new char[uniqueCount];
 
-  copy(tempFreq + 0, tempFreq + uniqueCount, Frequency);
-  copy(tempSym + 0, tempSym + uniqueCount, Symbols);
-  copy(tempFreq + 0, tempFreq + uniqueCount, test);
+  arr = new Node[uniqueCount];
+
+  for(int i = 0; i < uniqueCount; i++)
+  {
+    arr[i].data = tempSym[i];
+    arr[i].freq = tempFreq[i];
+  }
+
   delete[] tempFreq;
   delete[] tempSym;
 }
 
-void Huffman::ArraysSort()
+void Huffman::ArraySort()
 {
-  int step = uniqueCount / 2;
-  int bufChar;
-  int bufInt;
-  int i,j;
-  int k = 1;
+  Node buffer;
+  int i, j;
+  bool isSorted;
 
-  while(step > 0)
+  for(i = 0; isSorted == false; i++)
   {
-    for(i = step; i < uniqueCount; i++)
+    isSorted = true;
+    for(j = 0; j < uniqueCount-1-i; j++)
     {
-      bufInt = Frequency[i];
-      bufChar = Symbols[i];
-      for(j = i; j >= step && Frequency[j-step] > bufInt; j = j - step)
+      if(arr[j].freq > arr[j+1].freq)
       {
-        Frequency[j] = Frequency[j-step];
-        Symbols[j] = Symbols[j-step];
+        isSorted = false;
+        buffer = arr[j];
+        arr[j] = arr[j+1];
+        arr[j+1] = buffer;
       }
-      Frequency[j] = bufInt;
-      Symbols[j] = bufChar;
+      else if(arr[j].freq == arr[j+1].freq && !arr[j+1].data)
+      {
+        isSorted = false;
+        buffer = arr[j];
+        arr[j] = arr[j+1];
+        arr[j+1] = buffer;
+      }
     }
-    step /= 2;
-    k++;
+  }
+}
+
+void Huffman::CreateTree()
+{
+  while(uniqueCount > 1)
+  {
+    Node* newNode = new Node;
+    newNode->freq = arr[0].freq + arr[1].freq;
+    newNode->left = new Node(arr[0]);
+    newNode->right = new Node(arr[1]);
+    newNode->data = '\0';
+
+    Node* tempArr = new Node[uniqueCount-1];
+
+    for (int i = 0; i < uniqueCount - 2; ++i)
+    {
+      tempArr[i] = arr[i+2];
+    }
+    delete[] arr;
+
+    tempArr[uniqueCount-2] = *newNode;
+
+    arr = new Node[uniqueCount-1];
+    arr = tempArr;
+
+    uniqueCount--;
+    ArraySort();
+  }
+  cout << "\tHuffman Tree:\n\n";
+  PrintTree(new Node(arr[0]));
+}
+
+void Huffman::TravelTree(Node* cur, string code)
+{
+  if (cur != nullptr)
+  {
+    if (cur->data)
+    {
+      cur->code = code;
+    }
+    TravelTree(cur->left, code + "0");
+    TravelTree(cur->right, code + "1");
+  }
+}
+
+void CodeTableOutput(Node* cur)
+{
+  if(cur != nullptr)
+  {
+    if(cur->data)
+    {
+      cout << "Character: [" << cur->data << "]" << " Code: [" << cur->code << "]" << endl;;
+    }
+    CodeTableOutput(cur->left);
+    CodeTableOutput(cur->right);
   }
 }
 
@@ -173,43 +248,20 @@ void OriginalPrint()
   original.close();
 }
 
-struct Node
-{
-  char data;
-  int freq;
-  Node *left, *right;
-};
-
-Node *CreateNode()
-{
-  Node *newNode;
-  newNode = new Node;
-  cout << "\nEnter number to node: ";
-  cin >> newNode->data;
-
-  newNode->left = NULL;
-  newNode->right = NULL;
-
-  return newNode;
-}
-
-void PrintTree(Node *cur, int padding = 0)
-{
-  if(cur != NULL)
-  {
-    PrintTree(cur->right, padding+=5);
-    cout << setw(padding) << "[" << cur->data << "]" << endl;
-    PrintTree(cur->left, padding);
-  }
-}
-
 int main()
 {
-  Node *root = NULL;
-
   Huffman huf;
   huf.SymbolRepetition();
-  huf.ArraysSort();
+  huf.ArraySort();
+  int count = huf.get_uniqueCount();
+  char Symbol[count];
+  int Frequency[count];
+
+  for(int i = 0; i < count; i++)
+  {
+    Symbol[i] = huf.get_arr()[i].data;
+    Frequency[i] = huf.get_arr()[i].freq;
+  }
 
   enum KEYS { num1 = 49, num2 = 50, num3 = 51 , num4 = 52, num5 = 53, num6 = 54, num7 = 55, num8 = 56, num9 = 57 };
   // num10 = 45, num11 = 61, num12 = 112
@@ -219,6 +271,7 @@ int main()
   num12 = 112; it is  p
   */
   int choice;
+  int isTreeCreated = 0;
 
   system("cls");
   cout << "\n\tArchiver & Unarchiver\n\n";
@@ -235,8 +288,8 @@ int main()
       cout << "2. Encrypted file\n";
       cout << "3. Decrypted file\n";
       cout << "4. Frequency table\n";
-      cout << "5. Code table\n";
-      cout << "6. Tree\n";
+      cout << "5. Tree\n";
+      cout << "6. Code table\n";
       cout << "\n------------- ENCRYPT -------------\n";
       cout << "7. Encrypt file\n";
       cout << "\n------------- DECRYPT -------------\n";
@@ -261,33 +314,32 @@ int main()
         }
         case num3:
         {
-
           break;
         }
         case num4:
         {
-          int count = huf.get_uniqueCount();
           for(int i = 0; i < count; i++)
           {
-            cout << "Character: [" << huf.get_Symbols()[i] <<  "], Count: " << huf.get_Frequency()[i] << endl;
+            cout << "Character: [" << Symbol[i] <<  "], Count: " << Frequency[i] << endl;
           }
           break;
         }
         case num5:
         {
-
+          huf.CreateTree();
+          isTreeCreated++;
+          system("pause>nul");
           break;
         }
         case num6:
         {
-          if(root)
+          if(isTreeCreated == 1)
           {
-            cout << "Tree elements:\n\n";
-            PrintTree(root);
+            huf.TravelTree(new Node(huf.get_arr()[0]), "");
+            CodeTableOutput(new Node(huf.get_arr()[0]));
           }
-          else cout << "Tree does not exists!\n";
-          system("pause>nul");
-
+          else cout << "Tree is not created!";
+          break;
         }
         case num7:
         {
