@@ -212,16 +212,18 @@ void Huffman::TravelTree(Node* cur, string code)
   }
 }
 
-void CodeTableOutput(Node* cur)
+void CodeTableOutput(Node* cur, string Codes[], int& i)
 {
   if(cur != nullptr)
   {
     if(cur->data)
     {
-      cout << "Character: [" << cur->data << "]" << " Code: [" << cur->code << "]" << endl;;
+      cout << "Character: [" << cur->data << "]" << " Code: [" << cur->code << "]" << endl;
+      Codes[i] = cur->code;
+      i++;
     }
-    CodeTableOutput(cur->left);
-    CodeTableOutput(cur->right);
+    CodeTableOutput(cur->left, Codes, i);
+    CodeTableOutput(cur->right, Codes, i);
   }
 }
 
@@ -256,6 +258,7 @@ int main()
   int count = huf.get_uniqueCount();
   char Symbol[count];
   int Frequency[count];
+  string Codes[count];
 
   for(int i = 0; i < count; i++)
   {
@@ -271,7 +274,7 @@ int main()
   num12 = 112; it is  p
   */
   int choice;
-  int isTreeCreated = 0;
+  int isTreeCreated = 0, isEncrypted = 0, isDecrypted = 0;
 
   system("cls");
   cout << "\n\tArchiver & Unarchiver\n\n";
@@ -309,11 +312,20 @@ int main()
         }
         case num2:
         {
+          if(isEncrypted == 1)
+          {
 
+          }
+          else cout << "There is no encrypted file!" << endl;
           break;
         }
         case num3:
         {
+          if(isDecrypted == 1)
+          {
+
+          }
+          else cout << "There is no encrypted file!" << endl;
           break;
         }
         case num4:
@@ -335,20 +347,21 @@ int main()
         {
           if(isTreeCreated == 1)
           {
+            int i = 0;
             huf.TravelTree(new Node(huf.get_arr()[0]), "");
-            CodeTableOutput(new Node(huf.get_arr()[0]));
+            CodeTableOutput(new Node(huf.get_arr()[0]), Codes, i);
           }
           else cout << "Tree is not created!";
           break;
         }
         case num7:
         {
-
+          isEncrypted++;
           break;
         }
         case num8:
         {
-
+          isDecrypted++;
           break;
         }
         case num9:
