@@ -195,8 +195,6 @@ void Huffman::CreateTree()
     uniqueCount--;
     ArraySort();
   }
-  cout << "\tHuffman Tree:\n\n";
-  PrintTree(new Node(arr[0]));
 }
 
 void Huffman::TravelTree(Node* cur, string code)
@@ -212,18 +210,30 @@ void Huffman::TravelTree(Node* cur, string code)
   }
 }
 
-void CodeTableOutput(Node* cur, string Codes[], int& i)
+void CodeTableCreation(Node* cur, string Codes[], int& i)
+{
+  if(cur != nullptr)
+  {
+    if(cur->data)
+    {
+      Codes[i] = cur->code;
+      i++;
+    }
+    CodeTableCreation(cur->left, Codes, i);
+    CodeTableCreation(cur->right, Codes, i);
+  }
+}
+
+void CodeTableOutput(Node* cur, string Codes[])
 {
   if(cur != nullptr)
   {
     if(cur->data)
     {
       cout << "Character: [" << cur->data << "]" << " Code: [" << cur->code << "]" << endl;
-      Codes[i] = cur->code;
-      i++;
     }
-    CodeTableOutput(cur->left, Codes, i);
-    CodeTableOutput(cur->right, Codes, i);
+    CodeTableOutput(cur->left, Codes);
+    CodeTableOutput(cur->right, Codes);
   }
 }
 
@@ -250,6 +260,206 @@ void OriginalPrint()
   original.close();
 }
 
+void CompressFile(int count, string Codes[], char Symbol[], int& bitRemains, int& byteCount)
+{
+  ifstream original;
+  ofstream compressed;
+
+  original.open("t1.txt");
+
+  if(!original)
+  {
+    cerr << "File is not opened!";
+    system("pause>nul");
+    exit(1);
+  }
+
+  compressed.open("t2.bin", ios::binary);
+
+  if(!compressed)
+  {
+    cerr << "File is not created!";
+    system("pause>nul");
+    exit(1);
+  }
+
+  original.seekg(0, ios::end);
+  int fileSize = original.tellg();
+  original.seekg(0, ios::beg);
+
+  char content[fileSize + 1];
+
+  original.read(content, fileSize);
+  original.close();
+  content[fileSize] = '\0';
+
+  bool charIsFound;
+
+  char buffer = 0;   // Buferis bitu uzkrāšanai
+  int bufferCount = 0; // Bitu skaitīšana buferī
+
+  for(int i = 0; i < fileSize; i++)
+  {
+    char currentChar = content[i];
+    bool charIsFound = false;
+
+    for(int j = 0; j < count && charIsFound == false; j++)
+    {
+      if(currentChar == Symbol[j])
+      {
+        string CodeForChar = Codes[j];
+        charIsFound = true;
+
+        // nem katru elementu no CodeForChar in bit
+        for(char bit : CodeForChar)
+        {
+          buffer <<= 1; // bitu nobide pa kreisi par 1 poziciju - To izmanto, lai atbrīvotu vietu jaunam bitam
+          buffer |= (bit - '0'); // (bit - '0') bits apzīmē rakstzīmi "0" vai "1"
+          /*
+          Pārvērš bitu rakstzīmi ('0' vai '1') par veselu skaitli (0 vai 1)
+          Tas iestata jaunu bitu bufera galējā labajā pozīcijā.
+          */
+          bufferCount++; // par cik ir aizpildits buffer
+
+          // ja buffer ir pilns, tad to jaraksta faila
+          if (bufferCount == 8)
+          {
+            byteCount++;
+            compressed.put(buffer);
+            buffer = 0;
+            bufferCount = 0;
+          }
+        }
+      }
+    }
+  }
+
+  // ja palieka vel biti bufera, tad tos jaierakta fiala
+  if(bufferCount > 0)
+  {
+    buffer <<= (8 - bufferCount);
+    compressed.put(buffer);
+  }
+  bitRemains = bufferCount;
+
+  compressed.close();
+  cout << "File is successfully compressed!" << endl;
+}
+
+void ReadFromBinFile()
+{
+  ifstream binaryFile("t2.bin", ios::binary);
+
+  if(!binaryFile)
+  {
+    cerr << "File is not opened!";
+    system("pause>nul");
+    exit(1);
+  }
+
+  char buffer;
+  while(binaryFile.get(buffer))
+  {
+    for(int i = 7; i >= 0; i--)
+    {
+      cout << ((buffer >> i) & 1);
+    }
+  }
+
+  binaryFile.close();
+}
+
+void DecompressFile(Node* root, int& bitRemains, int& byteCount)
+{
+  ifstream compressedFile("t2.bin", ios::binary);
+  ofstream decompressedFile("t3.txt");
+
+  if(!compressedFile || !decompressedFile)
+  {
+    cerr << "File is not opened!";
+    system("pause>nul");
+    exit(1);
+  }
+
+  Node* currentNode = root;
+
+  char buffer;
+  int bufferCount = 0;
+  int newByteCount = byteCount;
+
+  while(newByteCount > 0)
+  {
+    compressedFile.get(buffer);
+    for(int i = 7; i >= 0; i--)
+    {
+      int bit = (buffer >> i) & 1;
+      if(bit == 0)
+      {
+        currentNode = currentNode->left;
+      }
+      else
+      {
+        currentNode = currentNode->right;
+      }
+      if(currentNode->left == nullptr && currentNode->right == nullptr)
+      {
+        decompressedFile.put(currentNode->data);
+        currentNode = root;
+      }
+    }
+    newByteCount--;
+  }
+
+  if(bitRemains > 0)
+  {
+    buffer <<= (8 - bitRemains);
+    for(int i = 7; i >= (8 - bitRemains); i--)
+    {
+      int bit = (buffer >> i) & 1;
+      if(bit == 0)
+      {
+        currentNode = currentNode->left;
+      }
+      else
+      {
+        currentNode = currentNode->right;
+      }
+      if(currentNode->left == nullptr && currentNode->right == nullptr)
+      {
+        decompressedFile.put(currentNode->data);
+        currentNode = root;
+      }
+    }
+  }
+
+  compressedFile.close();
+  decompressedFile.close();
+
+  cout << "File was successfully decompressed!" << endl;
+}
+
+void ReadFromDecompressed()
+{
+  ifstream decompressed("t3.txt");
+
+  if (!decompressed)
+  {
+    cerr << "File is not opened!";
+    system("pause>nul");
+    exit(1);
+  }
+
+  string str;
+  cout << "\nDecompressed file`s content:\n" << endl;
+  while(!decompressed.eof())
+  {
+    getline(decompressed, str);
+    cout << str;
+  }
+
+  decompressed.close();
+}
+
 int main()
 {
   Huffman huf;
@@ -266,6 +476,11 @@ int main()
     Frequency[i] = huf.get_arr()[i].freq;
   }
 
+  int i = 0;
+  huf.CreateTree();
+  huf.TravelTree(new Node(huf.get_arr()[0]), "");
+  CodeTableCreation(new Node(huf.get_arr()[0]), Codes, i);
+
   enum KEYS { num1 = 49, num2 = 50, num3 = 51 , num4 = 52, num5 = 53, num6 = 54, num7 = 55, num8 = 56, num9 = 57 };
   // num10 = 45, num11 = 61, num12 = 112
   /*
@@ -274,7 +489,9 @@ int main()
   num12 = 112; it is  p
   */
   int choice;
-  int isTreeCreated = 0, isEncrypted = 0, isDecrypted = 0;
+  int isEncrypted = 0, isDecrypted = 0;
+  int bitRemains = 0;
+  int byteCount = 0;
 
   system("cls");
   cout << "\n\tArchiver & Unarchiver\n\n";
@@ -314,7 +531,7 @@ int main()
         {
           if(isEncrypted == 1)
           {
-
+            ReadFromBinFile();
           }
           else cout << "There is no encrypted file!" << endl;
           break;
@@ -323,7 +540,7 @@ int main()
         {
           if(isDecrypted == 1)
           {
-
+            ReadFromDecompressed();
           }
           else cout << "There is no encrypted file!" << endl;
           break;
@@ -338,30 +555,25 @@ int main()
         }
         case num5:
         {
-          huf.CreateTree();
-          isTreeCreated++;
-          system("pause>nul");
+          cout << "\tHuffman Tree:\n\n";
+          PrintTree(new Node(huf.get_arr()[0]));
           break;
         }
         case num6:
         {
-          if(isTreeCreated == 1)
-          {
-            int i = 0;
-            huf.TravelTree(new Node(huf.get_arr()[0]), "");
-            CodeTableOutput(new Node(huf.get_arr()[0]), Codes, i);
-          }
-          else cout << "Tree is not created!";
+          CodeTableOutput(new Node(huf.get_arr()[0]), Codes);
           break;
         }
         case num7:
         {
           isEncrypted++;
+          CompressFile(count, Codes, Symbol, bitRemains, byteCount);
           break;
         }
         case num8:
         {
           isDecrypted++;
+          DecompressFile(new Node(huf.get_arr()[0]), bitRemains, byteCount);
           break;
         }
         case num9:
