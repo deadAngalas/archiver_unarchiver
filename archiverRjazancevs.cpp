@@ -472,11 +472,11 @@ int main()
   int Frequency[count];
   string Codes[count];
 
-  for(int i = 0; i < count; i++)
-  {
-    Symbol[i] = huf.get_arr()[i].data;
-    Frequency[i] = huf.get_arr()[i].freq;
-  }
+  // for(int i = 0; i < count; i++)
+  // {
+  //   Symbol[i] = huf.get_arr()[i].data;
+  //   Frequency[i] = huf.get_arr()[i].freq;
+  // }
 
   int i = 0;
   huf.CreateTree();
