@@ -210,17 +210,19 @@ void Huffman::TravelTree(Node* cur, string code)
   }
 }
 
-void CodeTableCreation(Node* cur, string Codes[], int& i)
+void CodeTableCreation(Node* cur, string Codes[], char Symbol[], int Frequency[], int& i)
 {
   if(cur != nullptr)
   {
     if(cur->data)
     {
       Codes[i] = cur->code;
+      Symbol[i] = cur->data;
+      Frequency[i] = cur->freq;
       i++;
     }
-    CodeTableCreation(cur->left, Codes, i);
-    CodeTableCreation(cur->right, Codes, i);
+    CodeTableCreation(cur->left, Codes, Symbol, Frequency, i);
+    CodeTableCreation(cur->right, Codes,Symbol, Frequency, i);
   }
 }
 
@@ -450,7 +452,7 @@ void ReadFromDecompressed()
   }
 
   string str;
-  cout << "\nDecompressed file`s content:\n" << endl;
+  cout << "\tDecompressed file`s content:\n" << endl;
   while(!decompressed.eof())
   {
     getline(decompressed, str);
@@ -479,7 +481,7 @@ int main()
   int i = 0;
   huf.CreateTree();
   huf.TravelTree(new Node(huf.get_arr()[0]), "");
-  CodeTableCreation(new Node(huf.get_arr()[0]), Codes, i);
+  CodeTableCreation(new Node(huf.get_arr()[0]), Codes, Symbol, Frequency, i);
 
   enum KEYS { num1 = 49, num2 = 50, num3 = 51 , num4 = 52, num5 = 53, num6 = 54, num7 = 55, num8 = 56, num9 = 57 };
   // num10 = 45, num11 = 61, num12 = 112
@@ -495,7 +497,7 @@ int main()
 
   system("cls");
   cout << "\n\tArchiver & Unarchiver\n\n";
-  cout << "\n Author: Vladislav Ryazancev\n Ver: 3.3.1\n Date (start): 24.11.2023 / 12:01\n Date (end): xx.11.2023 / 16:13\n\n";
+  cout << "\n Author: Vladislav Ryazancev\n Ver: 3.3.1\n Date (start): 24.11.2023 / 12:01\n Date (end): 07.12.2023 / 10:49\n\n";
 
   do
     {
@@ -551,6 +553,7 @@ int main()
           {
             cout << "Character: [" << Symbol[i] <<  "], Count: " << Frequency[i] << endl;
           }
+
           break;
         }
         case num5:
