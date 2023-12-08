@@ -491,7 +491,7 @@ int main()
   num12 = 112; it is  p
   */
   int choice;
-  int isEncrypted = 0, isDecrypted = 0;
+  int isCompressed = 0, isUnCompressed = 0;
   int bitRemains = 0;
   int byteCount = 0;
 
@@ -507,15 +507,15 @@ int main()
       cout << "\n\t\tMENU\n\n";
       cout << "-------------- PRINT --------------\n";
       cout << "1. Original file\n";
-      cout << "2. Encrypted file\n";
-      cout << "3. Decrypted file\n";
+      cout << "2. Archived file\n";
+      cout << "3. Unarchived file\n";
       cout << "4. Frequency table\n";
       cout << "5. Tree\n";
       cout << "6. Code table\n";
-      cout << "\n------------- ENCRYPT -------------\n";
-      cout << "7. Encrypt file\n";
-      cout << "\n------------- DECRYPT -------------\n";
-      cout << "8. Decrypt file\n";
+      cout << "\n------------- ARCHIVE -------------\n";
+      cout << "7. Archive file\n";
+      cout << "\n------------ UNARCHIVE ------------\n";
+      cout << "8. Unarchive file\n";
       cout << "\n-------------- STOP ---------------\n";
       cout << "9. Stop Program\n\n";
       cout << "-----------------------------------\n\n";
@@ -531,7 +531,7 @@ int main()
         }
         case num2:
         {
-          if(isEncrypted == 1)
+          if(isCompressed == 1)
           {
             ReadFromBinFile();
           }
@@ -540,7 +540,7 @@ int main()
         }
         case num3:
         {
-          if(isDecrypted == 1)
+          if(isUnCompressed == 1)
           {
             ReadFromDecompressed();
           }
@@ -569,13 +569,13 @@ int main()
         }
         case num7:
         {
-          isEncrypted++;
+          isCompressed++;
           CompressFile(count, Codes, Symbol, bitRemains, byteCount);
           break;
         }
         case num8:
         {
-          isDecrypted++;
+          isUnCompressed++;
           DecompressFile(new Node(huf.get_arr()[0]), bitRemains, byteCount);
           break;
         }
