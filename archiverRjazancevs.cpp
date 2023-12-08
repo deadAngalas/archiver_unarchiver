@@ -535,7 +535,7 @@ int main()
           {
             ReadFromBinFile();
           }
-          else cout << "There is no encrypted file!" << endl;
+          else cout << "There is no file!" << endl;
           break;
         }
         case num3:
@@ -544,7 +544,7 @@ int main()
           {
             ReadFromDecompressed();
           }
-          else cout << "There is no encrypted file!" << endl;
+          else cout << "There is no file!" << endl;
           break;
         }
         case num4:
