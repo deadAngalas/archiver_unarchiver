@@ -531,7 +531,7 @@ int main()
         }
         case num2:
         {
-          if(isCompressed == 1)
+          if(isCompressed > 0)
           {
             ReadFromBinFile();
           }
@@ -540,7 +540,7 @@ int main()
         }
         case num3:
         {
-          if(isUnCompressed == 1)
+          if(isUnCompressed > 0)
           {
             ReadFromDecompressed();
           }
@@ -569,14 +569,22 @@ int main()
         }
         case num7:
         {
-          isCompressed++;
-          CompressFile(count, Codes, Symbol, bitRemains, byteCount);
+          if(isCompressed == 0)
+          {
+            isCompressed++;
+            CompressFile(count, Codes, Symbol, bitRemains, byteCount);
+          }
+          else cout << "File is already compressed!\n";
           break;
         }
         case num8:
         {
-          isUnCompressed++;
-          DecompressFile(new Node(huf.get_arr()[0]), bitRemains, byteCount);
+          if(isUnCompressed == 0)
+          {
+            isUnCompressed++;
+            DecompressFile(new Node(huf.get_arr()[0]), bitRemains, byteCount);
+          }
+          else cout << "File is already uncompressed!\n";
           break;
         }
         case num9:
